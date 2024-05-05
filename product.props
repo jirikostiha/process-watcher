@@ -1,0 +1,11 @@
+<Project>
+
+  <PropertyGroup>
+
+    <Product>Process Watcher</Product>
+    <ProductName>Process Watcher</ProductName>
+    <Description></Description>
+
+  </PropertyGroup>
+
+</Project>
