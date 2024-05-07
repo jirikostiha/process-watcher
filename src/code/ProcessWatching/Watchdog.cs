@@ -60,8 +60,6 @@ public class Watchdog : IDisposable
         {
             while (true)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    break;
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!IsProcessRunning(processName))
@@ -135,7 +133,6 @@ public class Watchdog : IDisposable
 
     private static ProcessInfo CollectProcessInfo(Process process)
     {
-        process.WaitForExitAsync();
         return new ProcessInfo()
         {
             Name = process.ProcessName,
