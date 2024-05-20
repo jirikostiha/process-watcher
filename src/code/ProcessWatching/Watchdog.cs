@@ -122,7 +122,7 @@ public class Watchdog
 
             process.StartInfo = startInfo;
             process.EnableRaisingEvents = true;
-            process.Exited += (s, a) => Watcher.OnProcessStopped(new ProcessEventArgs(process.GetProcessInfo()));
+            process.Exited += (s, a) => Watcher.OnProcessStopped(new ProcessEventArgs(process.GetProcessInfo(Options.ProcessName)));
         }
         catch (Exception ex)
         {

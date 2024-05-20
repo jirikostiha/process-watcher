@@ -4,7 +4,6 @@ using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
-using System;
 
 public class Setup
 {
@@ -24,6 +23,8 @@ public class Setup
         });
 
         Logger = loggerFactory.CreateLogger("Watchdog");
+
+        Logger.LogInformation("================== Application started. ==================");
 
         Status = new ProcessWatchingStatus()
         {
@@ -70,6 +71,7 @@ public class Setup
         watchdog.ProcessStopped += (s, a) =>
         {
             Logger.LogInformation("Stopped process '{ProcessName}'.", a.ProcessInfo?.Name);
+            Status.IsProcessHealthy = false;
             Status.ProcessInfo = a.ProcessInfo;
             visualizer.Visualize(Status);
         };

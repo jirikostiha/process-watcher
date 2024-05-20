@@ -17,7 +17,7 @@ public static class ProcessExtensions
         {
             return new ProcessInfo()
             {
-                Name = process.ProcessName
+                Name = defaultName
             };
         }
         else
