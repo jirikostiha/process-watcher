@@ -18,7 +18,18 @@ public class Program
         {
             var ex = (Exception)e.ExceptionObject;
             if (Setup?.Logger is not null)
-                Setup.Logger.LogCritical(ex, "Unhandled Exception occurred.");
+            {
+                Setup.Logger.LogCritical(ex, "Unhandled Exception. Runtime is terminating {IsTerminating}. sender:'{Sender}'",
+                    e.IsTerminating, sender?.ToString() ?? string.Empty);
+            }
+        };
+
+        AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+        {
+            if (Setup?.Logger is not null)
+            {
+                Setup.Logger.LogInformation("Exiting process. sender:'{Sender}'", sender?.ToString() ?? string.Empty);
+            }
         };
 
         var configFile = "appsettings.json";
