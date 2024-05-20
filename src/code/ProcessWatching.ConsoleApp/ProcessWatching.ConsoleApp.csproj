@@ -13,6 +13,7 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <AssemblyName>Watchdog</AssemblyName>
     <NoWarn>CA1848</NoWarn>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
