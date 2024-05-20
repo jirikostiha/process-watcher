@@ -1,12 +1,14 @@
 ﻿namespace ProcessWatching.ConsoleApp;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using NReco.Logging.File;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-public static class Program
+public class Program
 {
     static async Task Main(string[] args)
     {
