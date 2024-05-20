@@ -18,23 +18,32 @@ public class ConsoleVisualizer
 
         Console.ForegroundColor = status.IsWatching ? WatchingEnabledColor : WatchingDisabledColor;
         var watchingText = status.IsWatching ? "Watching" : "Not watching";
-        Console.SetCursorPosition(GetStartPosition(watchingText), 4);
+        var x = GetStartPosition("Not Watching.................");
+        Console.SetCursorPosition(x, 4);
         Console.WriteLine(watchingText);
 
         if (status.ProcessInfo is not null && !string.IsNullOrEmpty(status.ProcessInfo.Name))
         {
             Console.ForegroundColor = status.IsProcessHealthy ? ProcessIsHealthyColor : ProcessFaultedColor;
-            var xposition = GetStartPosition(status.ProcessInfo.Name);
             var processText = $"{status.ProcessInfo.Name}  {status.ProcessInfo.Id}";
-            Console.SetCursorPosition(xposition, 6);
+            Console.SetCursorPosition(x, 6);
             Console.WriteLine(processText);
 
-            if (status.ProcessInfo.Memory > 0)
-            {
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.SetCursorPosition(xposition, 7);
-                Console.WriteLine($"memory: {status.ProcessInfo.Memory:N0}");
-            }
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.SetCursorPosition(x, 7);
+            Console.WriteLine($"memory: {status.ProcessInfo.Memory:N0}");
+
+            Console.SetCursorPosition(x, 8);
+            Console.WriteLine($"paged memory: {status.ProcessInfo.PagedMemorySize:N0}");
+
+            Console.SetCursorPosition(x, 9);
+            Console.WriteLine($"paged system memory: {status.ProcessInfo.PagedSystemMemorySize:N0}");
+
+            Console.SetCursorPosition(x, 10);
+            Console.WriteLine($"private memory: {status.ProcessInfo.PrivateMemorySize:N0}");
+
+            Console.SetCursorPosition(x, 11);
+            Console.WriteLine($"processor time: {status.ProcessInfo.TotalProcessorTime}");
         }
 
         Console.ResetColor();
