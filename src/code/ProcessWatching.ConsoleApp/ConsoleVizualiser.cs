@@ -21,10 +21,21 @@ public class ConsoleVisualizer
         Console.SetCursorPosition(GetStartPosition(watchingText), 4);
         Console.WriteLine(watchingText);
 
-        Console.ForegroundColor = status.IsProcessHealthy ? ProcessIsHealthyColor : ProcessFaultedColor;
-        var processText = $"{status.ProcessInfo?.Id} {status.ProcessInfo?.Name}";
-        Console.SetCursorPosition(GetStartPosition(processText), 5);
-        Console.WriteLine(processText);
+        if (status.ProcessInfo is not null && !string.IsNullOrEmpty(status.ProcessInfo.Name))
+        {
+            Console.ForegroundColor = status.IsProcessHealthy ? ProcessIsHealthyColor : ProcessFaultedColor;
+            var xposition = GetStartPosition(status.ProcessInfo.Name);
+            var processText = $"{status.ProcessInfo.Name}  {status.ProcessInfo.Id}";
+            Console.SetCursorPosition(xposition, 6);
+            Console.WriteLine(processText);
+
+            if (status.ProcessInfo.Memory > 0)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.SetCursorPosition(xposition, 7);
+                Console.WriteLine($"memory: {status.ProcessInfo.Memory:N0}");
+            }
+        }
 
         Console.ResetColor();
     }

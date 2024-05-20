@@ -1,8 +1,8 @@
 ﻿namespace ProcessWatching.ConsoleApp;
 
-using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +10,18 @@ public static class Program
 {
     static async Task Main(string[] args)
     {
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            var ex = (Exception)e.ExceptionObject;
+            Console.WriteLine("Unhandled Exception occurred: " + ex.Message);
+            Console.WriteLine("Stack Trace: " + ex.StackTrace);
+        };
+        AppDomain.CurrentDomain.FirstChanceException += (sender, e) =>
+        {
+            Console.WriteLine("First chance exception occurred: " + e.Exception.Message);
+            Console.WriteLine("Stack Trace: " + e.Exception.StackTrace);
+        };
+
         var configFile = "appsettings.json";
         if (args.Length > 1)
             configFile = args[1];
@@ -18,54 +30,19 @@ public static class Program
             .AddJsonFile(configFile, optional: false, reloadOnChange: false)
             .Build();
 
-        var proccessWatchingOptions = configuration.GetSection("ProcessWatching")?.Get<ProcessWatchingOptions>();
-        Guard.IsNotNull(proccessWatchingOptions);
-
         var visualizer = new ConsoleVisualizer();
-        var status = new ProcessWatchingStatus()
-        {
-            ProcessFile = proccessWatchingOptions.ProcessFile,
-        };
+        var setup = new Setup();
+        var watchdog = setup.Create(configuration, visualizer);
+        setup.Status.ProcessInfo.Name = watchdog.Options.ProcessName;
 
-        var watchdog = new Watchdog(proccessWatchingOptions);
-        watchdog.WatchingStarted += (s, a) =>
-        {
-            status.IsWatching = true;
-            status.ProcessInfo = a.ProcessInfo;
-            visualizer.Visualize(status);
-        };
-        watchdog.WatchingStopped += (s, a) =>
-        {
-            status.IsWatching = false;
-            status.ProcessInfo = a.ProcessInfo;
-            visualizer.Visualize(status);
-        };
-        watchdog.ProcessStarted += (s, a) =>
-        {
-            status.IsProcessHealthy = true;
-            status.ProcessInfo = a.ProcessInfo;
-            visualizer.Visualize(status);
-        };
-        watchdog.ProcessExited += (s, a) =>
-        {
-            status.IsProcessHealthy = false;
-            status.ProcessInfo = a.ProcessInfo;
-            visualizer.Visualize(status);
-        };
-        watchdog.ProcessError += (s, a) =>
-        {
-            status.IsProcessHealthy = false;
-            status.ProcessInfo = a.ProcessInfo;
-            visualizer.Visualize(status);
-        };
-
-        visualizer.Visualize(status);
+        visualizer.Visualize(setup.Status);
 
         HandleUserInput(watchdog);
 
         await Task.Delay(-1);
     }
 
+    [SuppressMessage("Blocker Bug", "S2190:Loops and recursions should not be infinite", Justification = "<Pending>")]
     private static void HandleUserInput(Watchdog watchdog)
     {
         while (true)
@@ -79,9 +56,20 @@ public static class Program
                     case ConsoleKey.Spacebar:
                         {
                             if (!watchdog.IsActive)
-                                _ = watchdog.StartWatchingAsync();
+                            {
+                                try
+                                {
+                                    _ = watchdog.StartWatchingAsync();
+                                }
+                                catch (Exception ex)
+                                {
+                                    throw new InvalidOperationException("Watching failed.", ex);
+                                }
+                            }
                             else
+                            {
                                 watchdog.StopWatching();
+                            }
                         }
                         break;
 

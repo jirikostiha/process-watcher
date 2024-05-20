@@ -7,137 +7,100 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class Watchdog : IDisposable
+public class Watchdog
 {
-    private CancellationTokenSource? _cancellationTokenSource;
-
-    public Watchdog(ProcessWatchingOptions options)
+    public Watchdog(ProcessWatcher processWatcher, WatchdogOptions options)
     {
+        Guard.IsNotNull(processWatcher);
         Guard.IsNotNull(options);
+        Guard.IsNotNullOrEmpty(options.ProcessName);
         Guard.IsNotNullOrEmpty(options.ProcessFile);
-        Guard.IsGreaterThanOrEqualTo(options.CheckingPeriod, TimeSpan.Zero);
-        Guard.IsGreaterThanOrEqualTo(options.StartDelay, TimeSpan.Zero);
         Guard.IsTrue(File.Exists(options.ProcessFile));
 
         Options = options;
+        Watcher = processWatcher;
+
+        processWatcher.ProcessStopped += RestartProcessHandler;
     }
 
-    public event EventHandler<ProcessEventArgs>? WatchingStarted;
     public event EventHandler<ProcessEventArgs>? ProcessStarting;
     public event EventHandler<ProcessEventArgs>? ProcessStarted;
-    public event EventHandler<ProcessEventArgs>? ProcessExited;
     public event EventHandler<ProcessEventArgs>? ProcessError;
-    public event EventHandler<ProcessEventArgs>? WatchingStopped;
 
-    public ProcessWatchingOptions Options { get; private set; }
+    public event EventHandler<ProcessEventArgs> WatchingStarted
+    {
+        add { Watcher.WatchingStarted += value; }
+        remove { Watcher.WatchingStarted -= value; }
+    }
 
-    public bool IsActive { get; private set; }
+    public event EventHandler<ProcessEventArgs> ProcessStopped
+    {
+        add { Watcher.ProcessStopped += value; }
+        remove { Watcher.ProcessStopped -= value; }
+    }
+
+    public event EventHandler<ProcessEventArgs> ProcessStatusReport
+    {
+        add { Watcher.ProcessStatusReport += value; }
+        remove { Watcher.ProcessStatusReport -= value; }
+    }
+
+    public event EventHandler<ProcessEventArgs> WatchingStopped
+    {
+        add { Watcher.WatchingStopped += value; }
+        remove { Watcher.WatchingStopped -= value; }
+    }
+
+    public WatchdogOptions Options { get; private set; }
+
+    public bool IsActive => Watcher.IsActive;
+
+    protected ProcessWatcher Watcher { get; private set; }
 
     public async Task StartWatchingAsync(CancellationToken cancellationToken = default)
     {
-        if (IsActive)
-            return;
+        if (!ProcessWatcher.IsProcessRunning(Options.ProcessName))
+            StartProcess(CreateProcess());
 
-        IsActive = true;
-
-        _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-        await StartWatchingCoreAsync(_cancellationTokenSource.Token);
+        await Watcher.StartWatchingAsync(Options.ProcessName, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task StartWatchingCoreAsync(CancellationToken cancellationToken = default)
+    private async void RestartProcessHandler(object? sender, ProcessEventArgs e)
     {
-        var processName = GetWatchingProcessName();
-        var process = GetProcessByName(processName);
+        await Task.Delay(Options.StartDelay);
 
-        WatchingStarted?.Invoke(this, new ProcessEventArgs(new()
-        {
-            Name = process?.ProcessName ?? processName,
-            Id = process?.Id,
-        }));
-
-        try
-        {
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!IsProcessRunning(processName))
-                {
-                    await Task.Delay(Options.StartDelay, cancellationToken);
-
-                    process = StartProcess(CreateProcess());
-                }
-
-                // Delay to reduce CPU usage
-                await Task.Delay(Options.CheckingPeriod, cancellationToken);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Cancellation requested
-        }
-
-        WatchingStopped?.Invoke(this, new ProcessEventArgs(new()
-        {
-            Name = process?.ProcessName ?? processName,
-            Id = process?.Id
-        }));
-
-        IsActive = false;
+        if (!ProcessWatcher.IsProcessRunning(Options.ProcessName) && IsActive)
+            StartProcess(CreateProcess());
     }
 
     public void StopWatching()
     {
-        _cancellationTokenSource?.Cancel();
+        Watcher?.StopWatching();
     }
-
-    private string GetWatchingProcessName() => Options.ProcessName is not null
-        ? Options.ProcessName
-        : Path.GetFileNameWithoutExtension(Options.ProcessFile);
-
-    private static Process? GetProcessByName(string processName)
-    {
-        Process[] processes = Process.GetProcessesByName(processName);
-        return processes.Length > 0 ? processes[0] : null;
-    }
-
-    private static bool IsProcessRunning(string processName) => IsProcessRunning(GetProcessByName(processName));
-
-    private static bool IsProcessRunning(Process? process) => process is not null && !process.HasExited;
 
     private Process? StartProcess(Process process)
     {
         try
         {
-            ProcessStarting?.Invoke(this, new ProcessEventArgs(CollectProcessInfo(process)));
+            ProcessStarting?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo()));
 
             var started = process.Start();
 
             if (!started)
             {
-                ProcessError?.Invoke(this, new ProcessEventArgs(CollectProcessInfo(process), "Process has not started."));
+                ProcessError?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(), "Process has not started."));
 
                 return process;
             }
 
-            ProcessStarted?.Invoke(this, new ProcessEventArgs(CollectProcessInfo(process)));
+            ProcessStarted?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo()));
         }
         catch (Exception ex)
         {
-            ProcessError?.Invoke(this, new ProcessEventArgs(CollectProcessInfo(process), ex.Message));
+            ProcessError?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(), ex.Message));
         }
 
         return process;
-    }
-
-    private static ProcessInfo CollectProcessInfo(Process process)
-    {
-        return new ProcessInfo()
-        {
-            Name = process.ProcessName,
-            Id = process.Id
-        };
     }
 
     private Process CreateProcess()
@@ -159,7 +122,7 @@ public class Watchdog : IDisposable
 
             process.StartInfo = startInfo;
             process.EnableRaisingEvents = true;
-            process.Exited += (s, a) => ProcessExited?.Invoke(this, new ProcessEventArgs(CollectProcessInfo(process)));
+            process.Exited += (s, a) => Watcher.OnProcessStopped(new ProcessEventArgs(process.GetProcessInfo()));
         }
         catch (Exception ex)
         {
@@ -167,11 +130,5 @@ public class Watchdog : IDisposable
         }
 
         return process;
-    }
-
-    public void Dispose()
-    {
-        _cancellationTokenSource?.Dispose();
-        GC.SuppressFinalize(this);
     }
 }
