@@ -10,18 +10,20 @@ using System.Threading.Tasks;
 
 public class Program
 {
+    static Setup Setup { get; set; }
+
     static async Task Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
         {
             var ex = (Exception)e.ExceptionObject;
-            Console.WriteLine("Unhandled Exception occurred: " + ex.Message);
-            Console.WriteLine("Stack Trace: " + ex.StackTrace);
+            if (Setup?.Logger is not null)
+                Setup.Logger.LogCritical(ex, "Unhandled Exception occurred.");
         };
         AppDomain.CurrentDomain.FirstChanceException += (sender, e) =>
         {
-            Console.WriteLine("First chance exception occurred: " + e.Exception.Message);
-            Console.WriteLine("Stack Trace: " + e.Exception.StackTrace);
+            if (Setup?.Logger is not null)
+                Setup.Logger.LogError(e.Exception, "First chance exception occurred.");
         };
 
         var configFile = "appsettings.json";
@@ -33,11 +35,11 @@ public class Program
             .Build();
 
         var visualizer = new ConsoleVisualizer();
-        var setup = new Setup();
-        var watchdog = setup.Create(configuration, visualizer);
-        setup.Status.ProcessInfo.Name = watchdog.Options.ProcessName;
+        Setup = new Setup();
+        var watchdog = Setup.Create(configuration, visualizer);
+        Setup.Status.ProcessInfo.Name = watchdog.Options.ProcessName;
 
-        visualizer.Visualize(setup.Status);
+        visualizer.Visualize(Setup.Status);
 
         HandleUserInput(watchdog);
 

@@ -12,6 +12,7 @@
     <Nullable>enable</Nullable>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <AssemblyName>Watchdog</AssemblyName>
+    <NoWarn>CA1848</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

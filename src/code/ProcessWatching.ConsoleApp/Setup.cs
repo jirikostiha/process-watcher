@@ -4,10 +4,12 @@ using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
+using System;
 
 public class Setup
 {
-    public ProcessWatchingStatus Status { get; set; }
+    public ProcessWatchingStatus Status { get; private set; }
+    public ILogger Logger { get; private set; }
 
     public Watchdog Create(IConfiguration configuration, ConsoleVisualizer visualizer)
     {
@@ -20,7 +22,8 @@ public class Setup
         {
             builder.AddFile(configuration.GetSection("Logging"));
         });
-        var logger = loggerFactory.CreateLogger("Watchdog");
+
+        Logger = loggerFactory.CreateLogger("Watchdog");
 
         Status = new ProcessWatchingStatus()
         {
@@ -31,14 +34,14 @@ public class Setup
         var watchdog = new Watchdog(processWatcher, watchdogOptions);
         watchdog.WatchingStarted += (s, a) =>
         {
-            logger.LogInformation("Started watching.");
+            Logger.LogInformation("Started watching.");
             Status.IsWatching = true;
             Status.ProcessInfo = a.ProcessInfo;
             visualizer.Visualize(Status);
         };
         watchdog.WatchingStopped += (s, a) =>
         {
-            logger.LogInformation("Stopped watching.");
+            Logger.LogInformation("Stopped watching.");
             Status.IsWatching = false;
             Status.ProcessInfo = a.ProcessInfo;
             visualizer.Visualize(Status);
@@ -51,14 +54,14 @@ public class Setup
         };
         watchdog.ProcessStarted += (s, a) =>
         {
-            logger.LogInformation("Starter process '{ProcessName}', Pid:{ProcessId}.", a.ProcessInfo?.Name, a.ProcessInfo?.Id);
+            Logger.LogInformation("Starter process '{ProcessName}', Pid:{ProcessId}.", a.ProcessInfo?.Name, a.ProcessInfo?.Id);
             Status.IsProcessHealthy = true;
             Status.ProcessInfo = a.ProcessInfo;
             visualizer.Visualize(Status);
         };
         watchdog.ProcessError += (s, a) =>
         {
-            logger.LogInformation("Process '{ProcessName}' Pid:{ProcessId} error: '{Message}'.",
+            Logger.LogInformation("Process '{ProcessName}' Pid:{ProcessId} error: '{Message}'.",
                 a.ProcessInfo?.Name, a.ProcessInfo?.Id, a.Message);
             Status.IsProcessHealthy = false;
             Status.ProcessInfo = a.ProcessInfo;
@@ -66,7 +69,7 @@ public class Setup
         };
         watchdog.ProcessStopped += (s, a) =>
         {
-            logger.LogInformation("Stopped process '{ProcessName}'.", a.ProcessInfo?.Name);
+            Logger.LogInformation("Stopped process '{ProcessName}'.", a.ProcessInfo?.Name);
             Status.ProcessInfo = a.ProcessInfo;
             visualizer.Visualize(Status);
         };
