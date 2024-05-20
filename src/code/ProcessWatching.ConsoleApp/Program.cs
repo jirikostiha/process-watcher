@@ -20,11 +20,6 @@ public class Program
             if (Setup?.Logger is not null)
                 Setup.Logger.LogCritical(ex, "Unhandled Exception occurred.");
         };
-        AppDomain.CurrentDomain.FirstChanceException += (sender, e) =>
-        {
-            if (Setup?.Logger is not null)
-                Setup.Logger.LogError(e.Exception, "First chance exception occurred.");
-        };
 
         var configFile = "appsettings.json";
         if (args.Length > 1)
