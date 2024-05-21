@@ -3,7 +3,7 @@
   <PropertyGroup>
 
     <ProductVersion>release</ProductVersion>
-    <VersionPrefix>1.1.0</VersionPrefix>
+    <VersionPrefix>1.2.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
 
   </PropertyGroup>
