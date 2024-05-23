@@ -65,7 +65,7 @@ public class Program
                 {
                     case ConsoleKey.Spacebar:
                         {
-                            if (!watchdog.IsActive)
+                            if (!watchdog.IsWatching)
                             {
                                 try
                                 {

@@ -28,22 +28,24 @@ public class ProcessWatcher : IDisposable
 
     public ProcessWatchingOptions Options { get; private set; }
 
-    public bool IsActive { get; private set; }
+    public string? WatchingProcessName { get; private set; }
+
+    public bool IsWatching => WatchingProcessName != null;
 
     public async Task StartWatchingAsync(string processName, CancellationToken cancellationToken = default)
     {
         Guard.IsNotNullOrEmpty(processName);
 
-        if (IsActive)
+        if (IsWatching)
             return;
 
-        IsActive = true;
+        WatchingProcessName = processName;
 
         _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         Process? process = null;
 
-        WatchingStarted?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(processName)));
+        WatchingStarted?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(WatchingProcessName)));
 
         try
         {
@@ -52,16 +54,16 @@ public class ProcessWatcher : IDisposable
                 if (_cancellationTokenSource.IsCancellationRequested)
                     break;
 
-                process = GetProcessByName(processName);
+                process = GetProcessByName(WatchingProcessName);
 
                 if (IsProcessRunning(process))
                 {
-                    ProcessStatusReport?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(processName)));
+                    ProcessStatusReport?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(WatchingProcessName)));
                 }
                 else
                 {
-                    ProcessStopped?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(processName)));
-                    OnProcessStopped(new ProcessEventArgs(process.GetProcessInfo(processName)));
+                    ProcessStopped?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(WatchingProcessName)));
+                    OnProcessStopped(new ProcessEventArgs(process.GetProcessInfo(WatchingProcessName)));
                 }
 
                 // Delay to reduce CPU usage
@@ -73,9 +75,9 @@ public class ProcessWatcher : IDisposable
             // ?
         }
 
-        WatchingStopped?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(processName)));
+        WatchingStopped?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(WatchingProcessName)));
 
-        IsActive = false;
+        WatchingProcessName = null;
     }
 
     public void StopWatching()

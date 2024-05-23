@@ -53,12 +53,15 @@ public class Watchdog
 
     public WatchdogOptions Options { get; private set; }
 
-    public bool IsActive => Watcher.IsActive;
+    public bool IsWatching => Watcher.IsWatching;
 
     protected ProcessWatcher Watcher { get; private set; }
 
     public async Task StartWatchingAsync(CancellationToken cancellationToken = default)
     {
+        if (IsWatching)
+            return;
+
         if (!ProcessWatcher.IsProcessRunning(Options.ProcessName))
             StartProcess(CreateProcess());
 
@@ -69,7 +72,7 @@ public class Watchdog
     {
         await Task.Delay(Options.StartDelay);
 
-        if (!ProcessWatcher.IsProcessRunning(Options.ProcessName) && IsActive)
+        if (IsWatching && !ProcessWatcher.IsProcessRunning(Options.ProcessName))
             StartProcess(CreateProcess());
     }
 
