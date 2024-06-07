@@ -22,8 +22,11 @@ public class ProcessWatcher : IDisposable
     }
 
     public event EventHandler<ProcessEventArgs>? WatchingStarted;
+
     public event EventHandler<ProcessEventArgs>? ProcessStopped;
+
     public event EventHandler<ProcessEventArgs>? ProcessStatusReport;
+
     public event EventHandler<ProcessEventArgs>? WatchingStopped;
 
     public ProcessWatchingOptions Options { get; private set; }

@@ -2,7 +2,6 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using NReco.Logging.File;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -10,9 +9,9 @@ using System.Threading.Tasks;
 
 public class Program
 {
-    static Setup Setup { get; set; }
+    private static Setup Setup { get; set; }
 
-    static async Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
         {

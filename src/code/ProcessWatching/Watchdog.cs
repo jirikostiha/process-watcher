@@ -24,7 +24,9 @@ public class Watchdog
     }
 
     public event EventHandler<ProcessEventArgs>? ProcessStarting;
+
     public event EventHandler<ProcessEventArgs>? ProcessStarted;
+
     public event EventHandler<ProcessEventArgs>? ProcessError;
 
     public event EventHandler<ProcessEventArgs> WatchingStarted
