@@ -5,13 +5,15 @@ using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
+using System.Diagnostics.CodeAnalysis;
 
 public class Setup
 {
     public ProcessWatchingStatus Status { get; private set; }
+
     public ILogger Logger { get; private set; }
 
-    [RequiresUnreferencedCode()]
+    [RequiresUnreferencedCode("Binding of WatchdogOptions")]
     public Watchdog Create(IConfiguration configuration, ConsoleVisualizer visualizer)
     {
         var proccessWatchingOptions = configuration.GetSection("ProcessWatching")?.Get<ProcessWatchingOptions>();
