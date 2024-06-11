@@ -78,9 +78,10 @@ public class ProcessWatcher : IDisposable
             // ?
         }
 
-        WatchingStopped?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(WatchingProcessName)));
-
+        var watchingProcessName = WatchingProcessName;
         WatchingProcessName = null;
+
+        WatchingStopped?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo(watchingProcessName)));
     }
 
     public void StopWatching()
