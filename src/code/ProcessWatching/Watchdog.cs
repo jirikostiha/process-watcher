@@ -79,7 +79,8 @@ public class Watchdog
 
     private async void RestartProcessHandler(object? sender, ProcessEventArgs e)
     {
-        await Task.Delay(CountDelay());
+        var delay = CountDelay();
+        await Task.Delay(delay);
 
         if (IsWatching && !ProcessWatcher.IsProcessRunning(Options.ProcessName))
             StartProcess(CreateProcess());

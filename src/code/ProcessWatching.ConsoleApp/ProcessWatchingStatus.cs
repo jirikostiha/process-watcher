@@ -8,5 +8,5 @@ public record ProcessWatchingStatus
 
     public required string ProcessFile { get; set; }
 
-    public ProcessInfo ProcessInfo { get; set; } = new ProcessInfo();
+    public ProcessInfo? ProcessInfo { get; set; } = new ProcessInfo();
 }

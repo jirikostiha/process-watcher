@@ -7,9 +7,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class Program
+public static class Program
 {
-    private static Setup Setup { get; set; }
+    private static Setup? Setup { get; set; }
 
     [RequiresUnreferencedCode("Calls ProcessWatching.ConsoleApp.Setup.Create(IConfiguration, ConsoleVisualizer)")]
     private static async Task Main(string[] args)
@@ -43,11 +43,14 @@ public class Program
         var visualizer = new ConsoleVisualizer();
         Setup = new Setup();
         var watchdog = Setup.Create(configuration, visualizer);
-        Setup.Status.ProcessInfo.Name = watchdog.Options.ProcessName;
+        if (Setup.Status?.ProcessInfo is not null)
+        {
+            Setup.Status.ProcessInfo.Name = watchdog.Options.ProcessName;
 
-        visualizer.Visualize(Setup.Status);
+            visualizer.Visualize(Setup.Status);
 
-        HandleUserInput(watchdog);
+            HandleUserInput(watchdog);
+        }
 
         await Task.Delay(-1);
     }
