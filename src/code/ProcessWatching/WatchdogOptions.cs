@@ -5,7 +5,10 @@ namespace ProcessWatching;
 
 public record WatchdogOptions
 {
-    public required string ProcessName { get; set; }
+    /// <summary>
+    /// Process name.
+    /// </summary>
+    public string ProcessName => Path.GetFileNameWithoutExtension(ProcessFile);
 
     /// <summary>
     /// File to execute.
