@@ -11,6 +11,7 @@ public class Program
 {
     private static Setup Setup { get; set; }
 
+    [RequiresUnreferencedCode("Calls ProcessWatching.ConsoleApp.Setup.Create(IConfiguration, ConsoleVisualizer)")]
     private static async Task Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
