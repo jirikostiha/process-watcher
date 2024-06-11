@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 public class Watchdog
 {
+    private DateTimeOffset? _lastProcessStartTime;
+    private DateTimeOffset? _lastProcessStopTime;
+    private TimeSpan? _lastStartDelay;
+
     public Watchdog(ProcessWatcher processWatcher, WatchdogOptions options)
     {
         Guard.IsNotNull(processWatcher);
@@ -59,11 +63,14 @@ public class Watchdog
 
     protected ProcessWatcher Watcher { get; private set; }
 
+    //protected TimeSpan LastProcessUpTime => _lastProcessStopTime - _lastProcessStartTime;
+
     public async Task StartWatchingAsync(CancellationToken cancellationToken = default)
     {
         if (IsWatching)
             return;
 
+        Reset();
         if (!ProcessWatcher.IsProcessRunning(Options.ProcessName))
             StartProcess(CreateProcess());
 
@@ -72,7 +79,7 @@ public class Watchdog
 
     private async void RestartProcessHandler(object? sender, ProcessEventArgs e)
     {
-        await Task.Delay(Options.StartDelay);
+        await Task.Delay(CountDelay());
 
         if (IsWatching && !ProcessWatcher.IsProcessRunning(Options.ProcessName))
             StartProcess(CreateProcess());
@@ -89,6 +96,8 @@ public class Watchdog
         {
             ProcessStarting?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo()));
 
+            _lastStartDelay = Options.StartDelay;
+            _lastProcessStartTime = TimeProvider.System.GetUtcNow();
             var started = process.Start();
 
             if (!started)
@@ -127,7 +136,11 @@ public class Watchdog
 
             process.StartInfo = startInfo;
             process.EnableRaisingEvents = true;
-            process.Exited += (s, a) => Watcher.OnProcessStopped(new ProcessEventArgs(process.GetProcessInfo(Options.ProcessName)));
+            process.Exited += (s, a) =>
+            {
+                _lastProcessStopTime = TimeProvider.System.GetUtcNow();
+                Watcher.OnProcessStopped(new ProcessEventArgs(process.GetProcessInfo(Options.ProcessName)));
+            };
         }
         catch (Exception ex)
         {
@@ -135,5 +148,32 @@ public class Watchdog
         }
 
         return process;
+    }
+
+    private TimeSpan CountDelay()
+    {
+        var lastProcessUptime = _lastProcessStopTime - _lastProcessStartTime;
+
+        // process exited after start and in given window - considered as failed too soon
+        if (lastProcessUptime.HasValue && lastProcessUptime > TimeSpan.Zero && lastProcessUptime <= Options.StartWindow)
+        {
+            if (!_lastStartDelay.HasValue)
+            {
+                _lastStartDelay = Options.StartDelay;
+                return _lastStartDelay.Value;
+            }
+
+            _lastStartDelay *= Options.DelayCoef;
+            return _lastStartDelay.Value;
+        }
+
+        return Options.StartDelay;
+    }
+
+    private void Reset()
+    {
+        _lastStartDelay = Options.StartDelay;
+        _lastProcessStartTime = null;
+        _lastProcessStopTime = null;
     }
 }
