@@ -11,7 +11,7 @@ public class Watchdog
 {
     private DateTimeOffset? _lastProcessStartTime;
     private DateTimeOffset? _lastProcessStopTime;
-    private TimeSpan? _lastStartDelay;
+    private TimeSpan _lastStartDelay;
 
     public Watchdog(ProcessWatcher processWatcher, WatchdogOptions options)
     {
@@ -95,7 +95,6 @@ public class Watchdog
         {
             ProcessStarting?.Invoke(this, new ProcessEventArgs(process.GetProcessInfo()));
 
-            _lastStartDelay = Options.StartDelay;
             _lastProcessStartTime = TimeProvider.System.GetUtcNow();
             var started = process.Start();
 
@@ -156,14 +155,8 @@ public class Watchdog
         // process exited after start and in given window - considered as failed too soon
         if (lastProcessUptime.HasValue && lastProcessUptime > TimeSpan.Zero && lastProcessUptime <= Options.StartWindow)
         {
-            if (!_lastStartDelay.HasValue)
-            {
-                _lastStartDelay = Options.StartDelay;
-                return _lastStartDelay.Value;
-            }
-
             _lastStartDelay *= Options.DelayCoef;
-            return _lastStartDelay.Value;
+            return _lastStartDelay;
         }
 
         return Options.StartDelay;
