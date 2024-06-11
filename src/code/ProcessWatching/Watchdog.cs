@@ -63,8 +63,6 @@ public class Watchdog
 
     protected ProcessWatcher Watcher { get; private set; }
 
-    //protected TimeSpan LastProcessUpTime => _lastProcessStopTime - _lastProcessStartTime;
-
     public async Task StartWatchingAsync(CancellationToken cancellationToken = default)
     {
         if (IsWatching)

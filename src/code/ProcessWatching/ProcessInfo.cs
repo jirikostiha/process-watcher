@@ -12,6 +12,8 @@ public record ProcessInfo
 
     public TimeSpan TotalProcessorTime { get; set; }
 
+    public TimeSpan RunningTime { get; set; }
+
     public long PagedMemorySize { get; set; }
 
     public long PagedSystemMemorySize { get; set; }

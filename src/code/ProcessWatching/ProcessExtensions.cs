@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace ProcessWatching;
 
@@ -28,6 +29,7 @@ public static class ProcessExtensions
                 Id = process.Id,
                 Memory = process.WorkingSet64,
                 TotalProcessorTime = process.TotalProcessorTime,
+                RunningTime = TimeProvider.System.GetUtcNow() - process.StartTime.ToUniversalTime(),
                 PagedMemorySize = process.PagedMemorySize64,
                 PagedSystemMemorySize = process.PagedSystemMemorySize64,
                 PrivateMemorySize = process.PrivateMemorySize64,

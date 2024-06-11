@@ -44,6 +44,9 @@ public class ConsoleVisualizer
 
             Console.SetCursorPosition(x, 11);
             Console.WriteLine($"processor time: {status.ProcessInfo.TotalProcessorTime}");
+
+            Console.SetCursorPosition(x, 12);
+            Console.WriteLine($"running time: {status.ProcessInfo.RunningTime}");
         }
 
         Console.ResetColor();
