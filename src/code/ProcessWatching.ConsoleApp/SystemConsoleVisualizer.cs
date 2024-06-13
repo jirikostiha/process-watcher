@@ -2,7 +2,7 @@
 
 namespace ProcessWatching.ConsoleApp;
 
-public class ConsoleVisualizer
+public class SystemConsoleVisualizer : IVisualizer
 {
     public ConsoleColor WatchingEnabledColor { get; set; } = ConsoleColor.Green;
     public ConsoleColor WatchingDisabledColor { get; set; } = ConsoleColor.Red;

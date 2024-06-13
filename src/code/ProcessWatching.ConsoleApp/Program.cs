@@ -40,7 +40,8 @@ public static class Program
             .AddJsonFile(configFile, optional: false, reloadOnChange: false)
             .Build();
 
-        var visualizer = new ConsoleVisualizer();
+        //var visualizer = new SystemConsoleVisualizer();
+        var visualizer = new SpectreVisualizer();
         Setup = new Setup();
         var watchdog = Setup.Create(configuration, visualizer);
         if (Setup.Status?.ProcessInfo is not null)

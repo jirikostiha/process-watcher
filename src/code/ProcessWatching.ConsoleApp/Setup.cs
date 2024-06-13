@@ -13,7 +13,7 @@ public class Setup
     public ILogger? Logger { get; private set; }
 
     [RequiresUnreferencedCode("Binding of WatchdogOptions")]
-    public Watchdog Create(IConfiguration configuration, ConsoleVisualizer visualizer)
+    public Watchdog Create(IConfiguration configuration, IVisualizer visualizer)
     {
         var proccessWatchingOptions = configuration.GetSection("ProcessWatching")?.Get<ProcessWatchingOptions>();
         Guard.IsNotNull(proccessWatchingOptions);
