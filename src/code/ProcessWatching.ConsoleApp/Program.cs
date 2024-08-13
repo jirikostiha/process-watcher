@@ -3,7 +3,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,13 +37,25 @@ public static class Program
             }
         };
 
-        var configFile = "appsettings.json";
+        var customConfigFile = "appsettings.json";
         if (args.Length > 1)
-            configFile = args[1];
+            customConfigFile = args[1];
 
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddJsonFile(configFile, optional: false, reloadOnChange: false)
-            .Build();
+        var configBuilder = new ConfigurationBuilder();
+        var currentDir = Directory.GetCurrentDirectory();
+        var allParents = currentDir.GetParents().Reverse().ToArray();
+        var appName = Process.GetCurrentProcess().ProcessName.ToLower(CultureInfo.InvariantCulture);
+
+        configBuilder.Sources.Clear();
+
+        foreach (var dir in allParents)
+        {
+            configBuilder.SetBasePath(dir);
+            configBuilder.AddJsonFile(customConfigFile, optional: true, reloadOnChange: false)
+                .AddJsonFile(appName + ".json", optional: true, reloadOnChange: false);
+        }
+
+        var configuration = configBuilder.Build();
 
         //var visualizer = new SystemConsoleVisualizer();
         var visualizer = new SpectreVisualizer();
