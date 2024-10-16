@@ -14,6 +14,8 @@
     <AssemblyName>Watchdog</AssemblyName>
     <NoWarn>CA1848</NoWarn>
     <PublishTrimmed>true</PublishTrimmed>
+    <PackageIcon>icon.png</PackageIcon>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +26,7 @@
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +41,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProcessWatching\ProcessWatching.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
