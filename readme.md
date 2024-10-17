@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="\src\code\ProcessWatching.ConsoleApp\icon.png" alt="process watcher" width="50"/>
+</p>
+
 # Process Watcher  
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/jirikostiha/process-watcher)
