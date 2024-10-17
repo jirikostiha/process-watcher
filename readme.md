@@ -8,7 +8,7 @@
 
 ## Overview
 
-Process Watcher is a tool designed to monitor and track the execution a process on your system. By using this tool, users can gain insights into the behavior of running process and the resource consumption by it. The watched process can be automatically restarted in case of failure.
+Process Watcher is a tool designed to monitor and track the execution a process on your system. By using this tool, users can gain basic insights into the behavior of running process and the resource consumption by it. The watched process can be automatically restarted in case of failure.
 
 ## Features
 
@@ -19,7 +19,28 @@ Process Watcher is a tool designed to monitor and track the execution a process 
 
 ## Usage
 
-Modify appsettings
+Modify appsettings.json to your needs.
+
+```json
+ "ProcessWatching": {
+    "CheckingPeriod": "00:00:05"
+  },
+  "Watchdog": {
+    "ProcessFile": "c:/temp/ProcessName.exe",
+    "StartDelay": "00:00:02",
+    "StartWindow": "00:00:10",
+    "DelayCoef": 1.5
+  }
+```
+
+**ProcessWatching**  
+- *CheckingPeriod*: How often the process is checked.  
+
+**Watchdog**  
+- *ProcessFile*: Path to the process executable to monitor.  
+- *StartDelay*: Time to wait before starting to check the process.  
+- *StartWindow*: Time window within which the process must start.  
+- *DelayCoef*: Multiplier for the delay between restart attempts if the process fails.  
 
 
 ## Contributing
