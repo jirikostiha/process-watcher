@@ -14,6 +14,11 @@
 
 Process Watcher is a tool designed to monitor and track the execution a process on your system. By using this tool, users can gain basic insights into the behavior of running process and the resource consumption by it. The watched process can be automatically restarted in case of failure.
 
+## Tech Stack
+
+* __core__: ms configuration, NReco logging  
+* __ui__: Spectre Console  
+
 ## Features
 
 * Monitor running process in real-time
